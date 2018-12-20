@@ -8,7 +8,12 @@ import org.august.lock.spring.boot.config.LockConfig.SingleConfig;
 import org.august.lock.spring.boot.core.LockInterceptor;
 import org.august.lock.spring.boot.enumeration.ServerPattern;
 import org.august.lock.spring.boot.factory.ServiceBeanFactory;
+import org.august.lock.spring.boot.service.impl.FairLockServiceImpl;
+import org.august.lock.spring.boot.service.impl.MultiLockServiceImpl;
+import org.august.lock.spring.boot.service.impl.ReadLockServiceImpl;
+import org.august.lock.spring.boot.service.impl.RedLockServiceImpl;
 import org.august.lock.spring.boot.service.impl.ReentrantLockServiceImpl;
+import org.august.lock.spring.boot.service.impl.WriteLockServiceImpl;
 import org.august.lock.spring.boot.store.MapStore;
 import org.august.lock.spring.boot.util.SpringUtil;
 import org.redisson.Redisson;
@@ -64,6 +69,36 @@ public class LockAutoConfiguration {
 	@Scope("prototype")
 	public ReentrantLockServiceImpl reentrantLockServiceImpl() {
 		return new ReentrantLockServiceImpl();
+	}
+	
+	@Bean
+	@Scope("prototype")
+	public FairLockServiceImpl fairLockServiceImpl() {
+		return new FairLockServiceImpl();
+	}
+	
+	@Bean
+	@Scope("prototype")
+	public MultiLockServiceImpl multiLockServiceImpl() {
+		return new MultiLockServiceImpl();
+	}
+	
+	@Bean
+	@Scope("prototype")
+	public RedLockServiceImpl redLockServiceImpl() {
+		return new RedLockServiceImpl();
+	}
+	
+	@Bean
+	@Scope("prototype")
+	public ReadLockServiceImpl readLockServiceImpl() {
+		return new ReadLockServiceImpl();
+	}
+	
+	@Bean
+	@Scope("prototype")
+	public WriteLockServiceImpl writeLockServiceImpl() {
+		return new WriteLockServiceImpl();
 	}
 	
 	/**

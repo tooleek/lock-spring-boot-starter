@@ -7,13 +7,8 @@ import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 
-/**
- * 可重入锁加锁服务
- * @author TanRq
- *
- */
-public class ReentrantLockServiceImpl implements LockService {
-	
+public class WriteLockServiceImpl implements LockService {
+
 	@Qualifier("lockRedissonClient")
 	@Autowired
 	private RedissonClient lockRedissonClient;
@@ -30,7 +25,7 @@ public class ReentrantLockServiceImpl implements LockService {
 	@Override
 	public void lock() throws Exception {
 		
-		this.lock = lockRedissonClient.getLock(lockKey.getKeyList().get(0));
+		this.lock = lockRedissonClient.getReadWriteLock(lockKey.getKeyList().get(0)).writeLock();
 		
 		if(lockKey.getLeaseTime()==-1&&lockKey.getWaitTime()==-1) {
 			lock.lock();
@@ -45,14 +40,12 @@ public class ReentrantLockServiceImpl implements LockService {
 			return;
 		}
 		
-		lock.lock();
+		this.lock.lock();
 	}
 
 	@Override
 	public void release() {
 		this.lock.unlock();
 	}
-
-	
 
 }
