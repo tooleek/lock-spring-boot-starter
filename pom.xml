@@ -1,0 +1,156 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>org.august.spring.boot</groupId>
+  <artifactId>lock-spring-boot-starter</artifactId>
+  <version>0.0.1-SNAPSHOT</version>
+  <packaging>jar</packaging>
+
+  <name>lock-spring-boot-starter</name>
+  <url>http://maven.apache.org</url>
+
+  <properties>
+  	<!-- project -->
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <java.version>1.8</java.version>
+    <!-- dependencies -->
+    <spring.boot.version>2.0.7.RELEASE</spring.boot.version>
+    <redisson.version>3.8.2</redisson.version>
+    <!-- plugins -->
+	<maven-compiler-plugin.version>3.7.0</maven-compiler-plugin.version>
+	<maven-surefire-plugin.version>2.20.1</maven-surefire-plugin.version>
+	<maven-source-plugin.version>3.0.1</maven-source-plugin.version>
+	<maven-javadoc-plugin.version>3.0.0</maven-javadoc-plugin.version>
+	<maven-gpg-plugin.version>1.6</maven-gpg-plugin.version>
+  </properties>
+
+  <dependencies>
+    <dependency>
+	    <groupId>org.redisson</groupId>
+	    <artifactId>redisson</artifactId>
+	    <version>${redisson.version}</version>
+	</dependency>
+	<dependency>
+		<groupId>org.springframework.boot</groupId>
+		<artifactId>spring-boot-starter-web</artifactId>
+		<optional>true</optional>
+		<scope>test</scope>
+	</dependency>
+	<dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter</artifactId>
+        <optional>true</optional>
+        <scope>test</scope>
+    </dependency>
+	<dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-aop</artifactId>
+    </dependency>
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-autoconfigure</artifactId>
+    </dependency>
+	<dependency>
+		<groupId>org.springframework.boot</groupId>
+		<artifactId>spring-boot-configuration-processor</artifactId>
+		<optional>true</optional>
+	</dependency>
+  </dependencies>
+  
+  <dependencyManagement>
+  	<dependencies>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-dependencies</artifactId>
+			<version>${spring.boot.version}</version>
+			<type>pom</type>
+			<scope>import</scope>
+		</dependency>
+	</dependencies>
+  </dependencyManagement>
+  
+  <build>
+  	<plugins>
+  		<plugin>
+  			<groupId>org.apache.maven.plugins</groupId>
+			<artifactId>maven-compiler-plugin</artifactId>
+			<version>${maven-compiler-plugin.version}</version>
+			<configuration>
+				<encoding>${project.build.sourceEncoding}</encoding>
+				<source>${java.version}</source>
+				<target>${java.version}</target>
+			</configuration>
+  		</plugin>
+  		<!-- <plugin>
+			<groupId>org.apache.maven.plugins</groupId>
+			<artifactId>maven-source-plugin</artifactId>
+			<version>${maven-source-plugin.version}</version>
+			<executions>
+				<execution>
+					<id>attach-sources</id>
+					<goals>
+						<goal>jar-no-fork</goal>
+					</goals>
+				</execution>
+			</executions>
+			<configuration>
+				<attach>true</attach>
+			</configuration>
+		</plugin> -->
+		<!-- <plugin>
+			<groupId>org.apache.maven.plugins</groupId>
+			<artifactId>maven-javadoc-plugin</artifactId>
+			<version>${maven-javadoc-plugin.version}</version>
+			<executions>
+				<execution>
+					<id>attach-javadocs</id>
+					<goals>
+						<goal>jar</goal>
+					</goals>
+				</execution>
+			</executions>
+			<configuration>
+				<skip>false</skip>
+				<show>public</show>
+				<charset>${project.build.sourceEncoding}</charset>
+				<encoding>${project.build.sourceEncoding}</encoding>
+				<docencoding>${project.build.sourceEncoding}</docencoding>
+				<links>
+					<link>http://docs.oracle.com/javase/6/docs/api</link>
+				</links>
+			</configuration>
+		</plugin> -->
+		<!-- <plugin>
+			<artifactId>maven-gpg-plugin</artifactId>
+			<version>${maven-gpg-plugin.version}</version>
+			<configuration>
+				<skip>false</skip>
+			</configuration>
+			<executions>
+				<execution>
+					<id>sign-artifacts</id>
+					<phase>verify</phase>
+					<goals>
+						<goal>sign</goal>
+					</goals>
+				</execution>
+			</executions>
+		</plugin> -->
+  	</plugins>
+  </build>
+  
+  <!-- <distributionManagement>
+	<snapshotRepository>
+		<id>sonatype-nexus-snapshots</id>
+		<name>Sonatype Nexus Snapshots</name>
+		<url>https://oss.sonatype.org/content/repositories/snapshots/</url>
+	</snapshotRepository>
+	<repository>
+		<id>sonatype-nexus-staging</id>
+		<name>Nexus Release Repository</name>
+		<url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+	</repository>
+  </distributionManagement> -->
+  
+</project>
