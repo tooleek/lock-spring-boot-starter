@@ -1,37 +1,47 @@
 # lock-spring-boot-starter
 
 #### 介绍
-基于redisson实现的分布式锁框架
-
-#### 软件架构
-软件架构说明
-
-
-#### 安装教程
-
-1. xxxx
-2. xxxx
-3. xxxx
+基于redisson实现的spring boot starter分布式锁框架,实现了可重入锁、公平锁、联锁、红锁、读写锁等常用锁的方式，并支持集群模式下的redis
 
 #### 使用说明
 
-1. xxxx
-2. xxxx
-3. xxxx
+1. 创建Spring Boot项目
+2. 引入maven依赖
+   ```  
+    <dependency>
+        <groupId>org.august.spring.boot</groupId>
+        <artifactId>lock-spring-boot-starter</artifactId>
+        <version>0.0.1-SNAPSHOT</version>
+    </dependency>
+   ```
+3. 在Spring Boot的项目配置文件application.yml中添加相应的配置，如：
+   ```
+    lock-config: 
+        pattern: single #redis模式配置，single：单机模式，cluster:集群模式，replicated:云托管模式,sentinel:哨兵模式，master_slave：主从模式
+        # 不同的redis模式对应不同的配置方式，single-server对应的就是单机模式，具体参数意义可参考redisson的配置参数说明
+        single-server: 
+            address: 127.0.0.1
+            port: 6379
+            password: 123456
+   ```
+4. 在需要使用分布式锁的方法上面使用@Lock注解，锁的关键字使用@Key，如:
+   ```
+    @Lock
+	public void hello(String ces, @Key String orderNo) {
+		System.out.println("hello");
+	}
+   ```
+   如果需要配置不同类型的锁，可以直接变更@Lock的参数值即可，默认是可重入锁
+   > @Lock提供四个参数可以配置：
+   > lockType:锁类型
+   > leaseTime:加锁时间
+   > waitTime:最长等待时间
+   > timeUnit:锁时长单位
 
+    DEMO地址如下：https://gitee.com/yizhigui/lock-spring-boot-starter-demo
 #### 参与贡献
 
 1. Fork 本仓库
 2. 新建 Feat_xxx 分支
 3. 提交代码
 4. 新建 Pull Request
-
-
-#### 码云特技
-
-1. 使用 Readme\_XXX.md 来支持不同的语言，例如 Readme\_en.md, Readme\_zh.md
-2. 码云官方博客 [blog.gitee.com](https://blog.gitee.com)
-3. 你可以 [https://gitee.com/explore](https://gitee.com/explore) 这个地址来了解码云上的优秀开源项目
-4. [GVP](https://gitee.com/gvp) 全称是码云最有价值开源项目，是码云综合评定出的优秀开源项目
-5. 码云官方提供的使用手册 [https://gitee.com/help](https://gitee.com/help)
-6. 码云封面人物是一档用来展示码云会员风采的栏目 [https://gitee.com/gitee-stars/](https://gitee.com/gitee-stars/)
