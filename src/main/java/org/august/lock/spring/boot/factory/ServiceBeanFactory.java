@@ -13,6 +13,11 @@ import org.august.lock.spring.boot.service.impl.ReentrantLockServiceImpl;
 import org.august.lock.spring.boot.service.impl.WriteLockServiceImpl;
 import org.august.lock.spring.boot.util.SpringUtil;
 
+/**
+ * 服务Bean工厂
+ * @author TanRq
+ *
+ */
 public class ServiceBeanFactory {
 	
 	private static EnumMap<LockType,Class<?>> serviceMap=new EnumMap<>(LockType.class);
@@ -26,6 +31,12 @@ public class ServiceBeanFactory {
 		serviceMap.put(LockType.WRITE, WriteLockServiceImpl.class);
 	}
 
+	/**
+	 * 根据锁类型获取相应的服务处理类
+	 * @param lockType
+	 * @return
+	 * @throws ServiceNotFoundException
+	 */
 	public LockService getService(LockType lockType) throws ServiceNotFoundException {
 		LockService lockService = (LockService) SpringUtil.getBean(serviceMap.get(lockType));
 		if(lockService==null) {

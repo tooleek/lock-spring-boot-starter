@@ -8,6 +8,11 @@ import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 
+/**
+ * 红锁操作服务
+ * @author TanRq
+ *
+ */
 public class RedLockServiceImpl implements LockService {
 
 	@Qualifier("lockRedissonClient")

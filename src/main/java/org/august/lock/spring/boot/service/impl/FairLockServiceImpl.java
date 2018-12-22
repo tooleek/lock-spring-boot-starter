@@ -7,6 +7,11 @@ import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 
+/**
+ * 公平锁操作服务
+ * @author TanRq
+ *
+ */
 public class FairLockServiceImpl implements LockService {
 
 	@Qualifier("lockRedissonClient")

@@ -26,6 +26,8 @@ import org.redisson.config.ClusterServersConfig;
 import org.redisson.config.Config;
 import org.redisson.config.MasterSlaveServersConfig;
 import org.redisson.config.ReadMode;
+import org.redisson.config.ReplicatedServersConfig;
+import org.redisson.config.SentinelServersConfig;
 import org.redisson.config.SingleServerConfig;
 import org.redisson.config.SslProvider;
 import org.redisson.config.SubscriptionMode;
@@ -40,6 +42,11 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Scope;
 
+/**
+ * 自动装配
+ * @author TanRq
+ *
+ */
 @Configuration
 @EnableConfigurationProperties(LockConfig.class)
 @Import({LockInterceptor.class})
@@ -48,6 +55,11 @@ public class LockAutoConfiguration {
 	@Autowired
 	private LockConfig lockConfig;
 	
+	/**
+	 * 创建redissonClient
+	 * @return
+	 * @throws URISyntaxException
+	 */
 	@Bean(name="lockRedissonClient",destroyMethod = "shutdown")
 	@ConditionalOnMissingBean
 	public RedissonClient redissionClient() throws URISyntaxException {
@@ -66,11 +78,15 @@ public class LockAutoConfiguration {
 			MasterSlaveServersConfig masterSlaveConfig=config.useMasterSlaveServers();
 			initMasterSlaveConfig(masterSlaveConfig);
 		}
+		if(serverPattern==ServerPattern.REPLICATED) {
+			ReplicatedServersConfig replicatedServersConfig = config.useReplicatedServers();
+			initReplicatedServersConfig(replicatedServersConfig);
+		}
+		if(serverPattern==ServerPattern.SENTINEL) {
+			SentinelServersConfig sentinelServersConfig = config.useSentinelServers();
+			initSentinelServersConfig(sentinelServersConfig);
+		}
 		return Redisson.create(config);
-	}
-	
-	private void initMasterSlaveConfig(MasterSlaveServersConfig masterSlaveConfig) {
-		//masterSlaveConfig.setmas
 	}
 
 	@Bean
@@ -202,6 +218,20 @@ public class LockAutoConfiguration {
 		clusterServerConfig.setPassword(clusterConfig.getPassword());
 		clusterServerConfig.setSubscriptionsPerConnection(clusterConfig.getSubPerConn());
 		clusterServerConfig.setClientName(lockConfig.getClientName());
+	}
+	
+	private void initSentinelServersConfig(SentinelServersConfig sentinelServersConfig) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	private void initReplicatedServersConfig(ReplicatedServersConfig replicatedServersConfig) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	private void initMasterSlaveConfig(MasterSlaveServersConfig masterSlaveConfig) {
+		//masterSlaveConfig.setmas
 	}
 
 }
