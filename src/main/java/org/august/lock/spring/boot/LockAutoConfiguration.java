@@ -2,8 +2,12 @@ package org.august.lock.spring.boot;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.august.lock.spring.boot.config.LockConfig;
+import org.august.lock.spring.boot.config.LockConfig.ClusterConfig;
 import org.august.lock.spring.boot.config.LockConfig.SingleConfig;
 import org.august.lock.spring.boot.core.LockInterceptor;
 import org.august.lock.spring.boot.enumeration.ServerPattern;
@@ -20,8 +24,14 @@ import org.redisson.Redisson;
 import org.redisson.api.RedissonClient;
 import org.redisson.config.ClusterServersConfig;
 import org.redisson.config.Config;
+import org.redisson.config.MasterSlaveServersConfig;
+import org.redisson.config.ReadMode;
 import org.redisson.config.SingleServerConfig;
 import org.redisson.config.SslProvider;
+import org.redisson.config.SubscriptionMode;
+import org.redisson.connection.balancer.RandomLoadBalancer;
+import org.redisson.connection.balancer.RoundRobinLoadBalancer;
+import org.redisson.connection.balancer.WeightedRoundRobinBalancer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -52,9 +62,17 @@ public class LockAutoConfiguration {
 			ClusterServersConfig clusterConfig=config.useClusterServers();
 			initClusterConfig(clusterConfig);
 		}
+		if(serverPattern==ServerPattern.MASTER_SLAVE) {
+			MasterSlaveServersConfig masterSlaveConfig=config.useMasterSlaveServers();
+			initMasterSlaveConfig(masterSlaveConfig);
+		}
 		return Redisson.create(config);
 	}
 	
+	private void initMasterSlaveConfig(MasterSlaveServersConfig masterSlaveConfig) {
+		//masterSlaveConfig.setmas
+	}
+
 	@Bean
 	public ServiceBeanFactory serviceBeanFactory() {
 		return new ServiceBeanFactory();
@@ -134,8 +152,56 @@ public class LockAutoConfiguration {
 	 * 初始化集群模式参数
 	 * @param clusterConfig
 	 */
-	private void initClusterConfig(ClusterServersConfig clusterConfig) {
-		
+	private void initClusterConfig(ClusterServersConfig clusterServerConfig) {
+		ClusterConfig clusterConfig = lockConfig.getClusterServer();
+		String[] addressArr = clusterConfig.getNodeAddresses().split(",");
+		Arrays.asList(addressArr).stream().forEach(address -> 
+			clusterServerConfig.addNodeAddress("redis://"+address)
+		);
+		clusterServerConfig.setScanInterval(clusterConfig.getScanInterval());
+		if("SLAVE".equals(clusterConfig.getReadMode())) {
+			clusterServerConfig.setReadMode(ReadMode.SLAVE);
+		}
+		if("MASTER".equals(clusterConfig.getReadMode())) {
+			clusterServerConfig.setReadMode(ReadMode.MASTER);
+		}
+		if("MASTER_SLAVE".equals(clusterConfig.getReadMode())) {
+			clusterServerConfig.setReadMode(ReadMode.MASTER_SLAVE);
+		}
+		if("SLAVE".equals(clusterConfig.getSubMode())) {
+			clusterServerConfig.setSubscriptionMode(SubscriptionMode.SLAVE);
+		}
+		if("MASTER".equals(clusterConfig.getSubMode())) {
+			clusterServerConfig.setSubscriptionMode(SubscriptionMode.MASTER);
+		}
+		if("RoundRobinLoadBalancer".equals(clusterConfig.getLoadBalancer())) {
+			clusterServerConfig.setLoadBalancer(new RoundRobinLoadBalancer());
+		}
+		if("WeightedRoundRobinBalancer".equals(clusterConfig.getLoadBalancer())) {
+			Map<String, Integer> weights=new HashMap<String, Integer>();
+			String[] weightMaps = clusterConfig.getWeightMaps().split(";");
+			Arrays.asList(weightMaps).stream().forEach(weightMap -> 
+				weights.put("redis://"+weightMap.split(",")[0], Integer.parseInt(weightMap.split(",")[1]))
+			);
+			clusterServerConfig.setLoadBalancer(new WeightedRoundRobinBalancer(weights, clusterConfig.getDefaultWeight()));
+		}
+		if("RandomLoadBalancer".equals(clusterConfig.getLoadBalancer())) {
+			clusterServerConfig.setLoadBalancer(new RandomLoadBalancer());
+		}
+		clusterServerConfig.setSubscriptionConnectionMinimumIdleSize(clusterConfig.getSubConnMinIdleSize());
+		clusterServerConfig.setSubscriptionConnectionPoolSize(clusterConfig.getSubConnPoolSize());
+		clusterServerConfig.setSlaveConnectionMinimumIdleSize(clusterConfig.getSlaveConnMinIdleSize());
+		clusterServerConfig.setSlaveConnectionPoolSize(clusterConfig.getSlaveConnPoolSize());
+		clusterServerConfig.setMasterConnectionMinimumIdleSize(clusterConfig.getMasterConnMinIdleSize());
+		clusterServerConfig.setMasterConnectionPoolSize(clusterConfig.getMasterConnPoolSize());
+		clusterServerConfig.setIdleConnectionTimeout(clusterConfig.getIdleConnTimeout());
+		clusterServerConfig.setConnectTimeout(clusterConfig.getConnTimeout());
+		clusterServerConfig.setTimeout(clusterConfig.getTimeout());
+		clusterServerConfig.setRetryAttempts(clusterConfig.getRetryAttempts());
+		clusterServerConfig.setRetryInterval(clusterConfig.getRetryInterval());
+		clusterServerConfig.setPassword(clusterConfig.getPassword());
+		clusterServerConfig.setSubscriptionsPerConnection(clusterConfig.getSubPerConn());
+		clusterServerConfig.setClientName(lockConfig.getClientName());
 	}
 
 }
