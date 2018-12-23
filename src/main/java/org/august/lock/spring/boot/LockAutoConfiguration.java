@@ -4,6 +4,9 @@ import org.august.lock.spring.boot.config.LockConfig;
 import org.august.lock.spring.boot.config.LockConfig.ClusterConfig;
 import org.august.lock.spring.boot.config.LockConfig.SentinelConfig;
 import org.august.lock.spring.boot.config.LockConfig.SingleConfig;
+import org.august.lock.spring.boot.constant.LoadBalancerTypeConstant;
+import org.august.lock.spring.boot.constant.LockCommonConstant;
+import org.august.lock.spring.boot.constant.SubReadModeTypeConstant;
 import org.august.lock.spring.boot.core.LockInterceptor;
 import org.august.lock.spring.boot.enumeration.ServerPattern;
 import org.august.lock.spring.boot.exception.UnknownLoadBalancerException;
@@ -137,7 +140,7 @@ public class LockAutoConfiguration {
      */
     private void initSingleConfig(SingleServerConfig singleConfig) throws URISyntaxException {
         SingleConfig singleServerConfig = lockConfig.getSingleServer();
-        singleConfig.setAddress("redis://" + singleServerConfig.getAddress() + ":" + singleServerConfig.getPort());
+        singleConfig.setAddress(String.format("%s%s%s%s", LockCommonConstant.REDIS_URL_PREFIX, singleServerConfig.getAddress(), LockCommonConstant.COLON, singleServerConfig.getPort()));
         singleConfig.setClientName(lockConfig.getClientName());
         singleConfig.setConnectionMinimumIdleSize(singleServerConfig.getConnMinIdleSize());
         singleConfig.setConnectionPoolSize(singleServerConfig.getConnPoolSize());
@@ -156,7 +159,7 @@ public class LockAutoConfiguration {
         if (lockConfig.getSslKeystorePassword() != null) {
             singleConfig.setSslKeystorePassword(lockConfig.getSslKeystorePassword());
         }
-        singleConfig.setSslProvider("JDK".equalsIgnoreCase(lockConfig.getSslProvider()) ? SslProvider.JDK : SslProvider.OPENSSL);
+        singleConfig.setSslProvider(LockCommonConstant.JDK.equalsIgnoreCase(lockConfig.getSslProvider()) ? SslProvider.JDK : SslProvider.OPENSSL);
     }
 
     /**
@@ -166,22 +169,22 @@ public class LockAutoConfiguration {
      */
     private void initClusterConfig(ClusterServersConfig clusterServerConfig) {
         ClusterConfig clusterConfig = lockConfig.getClusterServer();
-        String[] addressArr = clusterConfig.getNodeAddresses().split(",");
+        String[] addressArr = clusterConfig.getNodeAddresses().split(LockCommonConstant.COMMA);
         Arrays.asList(addressArr).forEach(address ->
-                clusterServerConfig.addNodeAddress("redis://" + address)
+                clusterServerConfig.addNodeAddress(String.format("%s%s", LockCommonConstant.REDIS_URL_PREFIX, address))
         );
         clusterServerConfig.setScanInterval(clusterConfig.getScanInterval());
 
         ReadMode readMode = getReadMode(clusterConfig.getReadMode());
-        ValidateUtil.notNull(readMode, UnknownReadModeException.class, null);
+        ValidateUtil.notNull(readMode, UnknownReadModeException.class, "未知读取操作的负载均衡模式类型");
         clusterServerConfig.setReadMode(readMode);
 
         SubscriptionMode subscriptionMode = getSubscriptionMode(clusterConfig.getSubMode());
-        ValidateUtil.notNull(subscriptionMode, UnknownSubscriptionModeException.class, null);
+        ValidateUtil.notNull(subscriptionMode, UnknownSubscriptionModeException.class, "未知订阅操作的负载均衡模式类型");
         clusterServerConfig.setSubscriptionMode(subscriptionMode);
 
         LoadBalancer loadBalancer = getLoadBalancer(clusterConfig.getLoadBalancer(), clusterConfig.getWeightMaps(), clusterConfig.getDefaultWeight());
-        ValidateUtil.notNull(loadBalancer, UnknownLoadBalancerException.class, null);
+        ValidateUtil.notNull(loadBalancer, UnknownLoadBalancerException.class, "未知负载均衡算法类型");
         clusterServerConfig.setLoadBalancer(loadBalancer);
 
         clusterServerConfig.setSubscriptionConnectionMinimumIdleSize(clusterConfig.getSubConnMinIdleSize());
@@ -208,21 +211,21 @@ public class LockAutoConfiguration {
      */
     private void initSentinelServersConfig(SentinelServersConfig sentinelServersConfig) throws URISyntaxException {
         SentinelConfig sentinelConfig = lockConfig.getSentinelServer();
-        String[] addressArr = sentinelConfig.getSentinelAddresses().split(",");
+        String[] addressArr = sentinelConfig.getSentinelAddresses().split(LockCommonConstant.COMMA);
         Arrays.asList(addressArr).forEach(address ->
-                sentinelServersConfig.addSentinelAddress("redis://" + address)
+                sentinelServersConfig.addSentinelAddress(String.format("%s%s", LockCommonConstant.REDIS_URL_PREFIX, address))
         );
 
         ReadMode readMode = getReadMode(sentinelConfig.getReadMode());
-        ValidateUtil.notNull(readMode, UnknownReadModeException.class, null);
+        ValidateUtil.notNull(readMode, UnknownReadModeException.class, "未知读取操作的负载均衡模式类型");
         sentinelServersConfig.setReadMode(readMode);
 
         SubscriptionMode subscriptionMode = getSubscriptionMode(sentinelConfig.getSubMode());
-        ValidateUtil.notNull(subscriptionMode, UnknownSubscriptionModeException.class, null);
+        ValidateUtil.notNull(subscriptionMode, UnknownSubscriptionModeException.class, "未知订阅操作的负载均衡模式类型");
         sentinelServersConfig.setSubscriptionMode(subscriptionMode);
 
         LoadBalancer loadBalancer = getLoadBalancer(sentinelConfig.getLoadBalancer(), sentinelConfig.getWeightMaps(), sentinelConfig.getDefaultWeight());
-        ValidateUtil.notNull(loadBalancer, UnknownLoadBalancerException.class, null);
+        ValidateUtil.notNull(loadBalancer, UnknownLoadBalancerException.class, "未知负载均衡算法类型");
         sentinelServersConfig.setLoadBalancer(loadBalancer);
 
         sentinelServersConfig.setMasterName(sentinelConfig.getMasterName());
@@ -255,7 +258,7 @@ public class LockAutoConfiguration {
         if (lockConfig.getSslTruststorePassword() != null) {
             sentinelServersConfig.setSslTruststorePassword(lockConfig.getSslTruststorePassword());
         }
-        sentinelServersConfig.setSslProvider("JDK".equalsIgnoreCase(lockConfig.getSslProvider()) ? SslProvider.JDK : SslProvider.OPENSSL);
+        sentinelServersConfig.setSslProvider(LockCommonConstant.JDK.equalsIgnoreCase(lockConfig.getSslProvider()) ? SslProvider.JDK : SslProvider.OPENSSL);
     }
 
     private void initReplicatedServersConfig(ReplicatedServersConfig replicatedServersConfig) {
@@ -276,19 +279,19 @@ public class LockAutoConfiguration {
      * @return LoadBalancer OR NULL
      */
     private LoadBalancer getLoadBalancer(String loadBalancerType, String customerWeightMaps, int defaultWeight) {
-        if ("RoundRobinLoadBalancer".equals(loadBalancerType)) {
+        if (LoadBalancerTypeConstant.RANDOM_LOAD_BALANCER.equals(loadBalancerType)) {
+            return new RandomLoadBalancer();
+        }
+        if (LoadBalancerTypeConstant.ROUND_ROBIN_LOAD_BALANCER.equals(loadBalancerType)) {
             return new RoundRobinLoadBalancer();
         }
-        if ("WeightedRoundRobinBalancer".equals(loadBalancerType)) {
+        if (LoadBalancerTypeConstant.WEIGHTED_ROUND_ROBIN_BALANCER.equals(loadBalancerType)) {
             Map<String, Integer> weights = new HashMap<>(16);
-            String[] weightMaps = customerWeightMaps.split(";");
+            String[] weightMaps = customerWeightMaps.split(LockCommonConstant.SEMICOLON);
             Arrays.asList(weightMaps).forEach(weightMap ->
-                    weights.put("redis://" + weightMap.split(",")[0], Integer.parseInt(weightMap.split(",")[1]))
+                    weights.put(LockCommonConstant.REDIS_URL_PREFIX + weightMap.split(LockCommonConstant.COMMA)[0], Integer.parseInt(weightMap.split(LockCommonConstant.COMMA)[1]))
             );
             return new WeightedRoundRobinBalancer(weights, defaultWeight);
-        }
-        if ("RandomLoadBalancer".equals(loadBalancerType)) {
-            return new RandomLoadBalancer();
         }
         return null;
     }
@@ -300,13 +303,13 @@ public class LockAutoConfiguration {
      * @return ReadMode OR NULL
      */
     private ReadMode getReadMode(String readModeType) {
-        if ("SLAVE".equals(readModeType)) {
+        if (SubReadModeTypeConstant.SLAVE.equals(readModeType)) {
             return ReadMode.SLAVE;
         }
-        if ("MASTER".equals(readModeType)) {
+        if (SubReadModeTypeConstant.MASTER.equals(readModeType)) {
             return ReadMode.MASTER;
         }
-        if ("MASTER_SLAVE".equals(readModeType)) {
+        if (SubReadModeTypeConstant.MASTER_SLAVE.equals(readModeType)) {
             return ReadMode.MASTER_SLAVE;
         }
         return null;
@@ -319,10 +322,10 @@ public class LockAutoConfiguration {
      * @return SubscriptionMode OR NULL
      */
     private SubscriptionMode getSubscriptionMode(String subscriptionModeType) {
-        if ("SLAVE".equals(subscriptionModeType)) {
+        if (SubReadModeTypeConstant.SLAVE.equals(subscriptionModeType)) {
             return SubscriptionMode.SLAVE;
         }
-        if ("MASTER".equals(subscriptionModeType)) {
+        if (SubReadModeTypeConstant.MASTER.equals(subscriptionModeType)) {
             return SubscriptionMode.MASTER;
         }
         return null;

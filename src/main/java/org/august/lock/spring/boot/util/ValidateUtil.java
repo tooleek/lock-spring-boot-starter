@@ -13,6 +13,9 @@ import java.util.regex.Pattern;
  * 验证帮助类
  *
  * @author 54lxb
+ * @version 1.1.0
+ * @apiNote 知识改变命运，技术改变世界
+ * @since 2018-12-23 15:32
  */
 public class ValidateUtil {
 
@@ -129,8 +132,7 @@ public class ValidateUtil {
      * @param <T>            异常类型必须是RuntimeException的派生类
      */
     public static <T extends RuntimeException> boolean strNotEmpty(String data, Class<T> exceptionClass, String msg) {
-        boolean result = strNotEmpty(data);
-        return getResult(result, exceptionClass, msg == null ? "内容不可为空" : msg);
+        return getResult(strNotEmpty(data), exceptionClass, msg == null ? "内容不可为空" : msg);
     }
 
     /**
@@ -152,8 +154,7 @@ public class ValidateUtil {
      * @param <T>            异常类型必须是RuntimeException的派生类
      */
     public static <T extends RuntimeException> boolean strNotEmptyWithTrim(String data, Class<T> exceptionClass, String msg) {
-        boolean result = strNotEmptyWithTrim(data);
-        return getResult(result, exceptionClass, msg == null ? "内容不可为空" : msg);
+        return getResult(strNotEmptyWithTrim(data), exceptionClass, msg == null ? "内容不可为空" : msg);
     }
 
     /**

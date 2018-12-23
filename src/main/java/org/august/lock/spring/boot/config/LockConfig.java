@@ -1,5 +1,8 @@
 package org.august.lock.spring.boot.config;
 
+import org.august.lock.spring.boot.constant.LoadBalancerTypeConstant;
+import org.august.lock.spring.boot.constant.LockCommonConstant;
+import org.august.lock.spring.boot.constant.SubReadModeTypeConstant;
 import org.august.lock.spring.boot.enumeration.ServerPattern;
 import org.redisson.config.SslProvider;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -34,7 +37,7 @@ public class LockConfig {
     /**
      * 客户端名称
      */
-    private String clientName = "Lock";
+    private String clientName = LockCommonConstant.LOCK;
     /**
      * 启用SSL终端识别
      */
@@ -42,7 +45,7 @@ public class LockConfig {
     /**
      * SSL实现方式，确定采用哪种方式（JDK或OPENSSL）来实现SSL连接
      */
-    private String sslProvider = "JDK";
+    private String sslProvider = LockCommonConstant.JDK;
     /**
      * SSL信任证书库路径
      */
@@ -181,11 +184,11 @@ public class LockConfig {
         /**
          * 读取操作的负载均衡模式
          */
-        private String readMode = "SLAVE";
+        private String readMode = SubReadModeTypeConstant.SLAVE;
         /**
          * 订阅操作的负载均衡模式
          */
-        private String subMode = "SLAVE";
+        private String subMode = SubReadModeTypeConstant.SLAVE;
 
     }
 
@@ -205,15 +208,15 @@ public class LockConfig {
         /**
          * 读取操作的负载均衡模式
          */
-        private String readMode = "SLAVE";
+        private String readMode = SubReadModeTypeConstant.SLAVE;
         /**
          * 订阅操作的负载均衡模式
          */
-        private String subMode = "SLAVE";
+        private String subMode = SubReadModeTypeConstant.SLAVE;
         /**
          * 负载均衡算法类的选择，默认：轮询调度算法
          */
-        private String loadBalancer = "RoundRobinLoadBalancer";
+        private String loadBalancer = LoadBalancerTypeConstant.ROUND_ROBIN_LOAD_BALANCER;
         /**
          * 默认权重值，当负载均衡算法是权重轮询调度算法时该属性有效
          */
@@ -501,15 +504,15 @@ public class LockConfig {
         /**
          * 读取操作的负载均衡模式
          */
-        private String readMode = "SLAVE";
+        private String readMode = SubReadModeTypeConstant.SLAVE;
         /**
          * 订阅操作的负载均衡模式
          */
-        private String subMode = "SLAVE";
+        private String subMode = SubReadModeTypeConstant.SLAVE;
         /**
          * 负载均衡算法类的选择，默认：轮询调度算法
          */
-        private String loadBalancer = "RoundRobinLoadBalancer";
+        private String loadBalancer = LoadBalancerTypeConstant.ROUND_ROBIN_LOAD_BALANCER;
         /**
          * 默认权重值，当负载均衡算法是权重轮询调度算法时该属性有效
          */
