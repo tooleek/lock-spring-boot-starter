@@ -1,7 +1,12 @@
 package org.august.lock.spring.boot;
+import org.redisson.config.ReadMode;
+import org.redisson.config.SslProvider;
+import org.redisson.config.SubscriptionMode;
 
 import org.august.lock.spring.boot.config.LockConfig;
 import org.august.lock.spring.boot.config.LockConfig.ClusterConfig;
+import org.august.lock.spring.boot.config.LockConfig.ReplicatedConfig;
+import org.august.lock.spring.boot.config.LockConfig.MasterSlaveConfig;
 import org.august.lock.spring.boot.config.LockConfig.SentinelConfig;
 import org.august.lock.spring.boot.config.LockConfig.SingleConfig;
 import org.august.lock.spring.boot.constant.LoadBalancerTypeConstant;
@@ -55,7 +60,6 @@ public class LockAutoConfiguration {
      * 创建redisSonClient
      *
      * @return RedissonClient
-     * @throws URISyntaxException URISyntaxException
      */
     @Bean(name = "lockRedissonClient", destroyMethod = "shutdown")
     @ConditionalOnMissingBean
@@ -64,8 +68,8 @@ public class LockAutoConfiguration {
         ServerPattern serverPattern = MapStore.getServerPattern(lockConfig.getPattern());
 
         if (serverPattern == ServerPattern.SINGLE) {
-            SingleServerConfig singleConfig = config.useSingleServer();
-            initSingleConfig(singleConfig);
+            SingleServerConfig singleServerConfig = config.useSingleServer();
+            initSingleConfig(singleServerConfig);
         }
         if (serverPattern == ServerPattern.CLUSTER) {
             ClusterServersConfig clusterConfig = config.useClusterServers();
@@ -135,31 +139,30 @@ public class LockAutoConfiguration {
     /**
      * 初始化单机模式参数
      *
-     * @param singleConfig 单机模式配置
-     * @throws URISyntaxException URISyntaxException
+     * @param singleServerConfig 单机模式配置
      */
-    private void initSingleConfig(SingleServerConfig singleConfig) throws URISyntaxException {
-        SingleConfig singleServerConfig = lockConfig.getSingleServer();
-        singleConfig.setAddress(String.format("%s%s%s%s", LockCommonConstant.REDIS_URL_PREFIX, singleServerConfig.getAddress(), LockCommonConstant.COLON, singleServerConfig.getPort()));
-        singleConfig.setClientName(lockConfig.getClientName());
-        singleConfig.setConnectionMinimumIdleSize(singleServerConfig.getConnMinIdleSize());
-        singleConfig.setConnectionPoolSize(singleServerConfig.getConnPoolSize());
-        singleConfig.setConnectTimeout(singleServerConfig.getConnTimeout());
-        singleConfig.setDatabase(singleServerConfig.getDatabase());
-        singleConfig.setDnsMonitoringInterval(singleServerConfig.getDnsMonitoringInterval());
-        singleConfig.setIdleConnectionTimeout(singleServerConfig.getIdleConnTimeout());
-        singleConfig.setKeepAlive(singleServerConfig.isKeepAlive());
-        singleConfig.setPassword(singleServerConfig.getPassword());
-        singleConfig.setRetryAttempts(singleServerConfig.getRetryAttempts());
-        singleConfig.setRetryInterval(singleServerConfig.getRetryInterval());
-        singleConfig.setSslEnableEndpointIdentification(lockConfig.isSslEnableEndpointIdentification());
+    private void initSingleConfig(SingleServerConfig singleServerConfig) throws URISyntaxException {
+        SingleConfig singleConfig = lockConfig.getSingleServer();
+        singleServerConfig.setAddress(String.format("%s%s%s%s", LockCommonConstant.REDIS_URL_PREFIX, singleConfig.getAddress(), LockCommonConstant.COLON, singleConfig.getPort()));
+        singleServerConfig.setClientName(lockConfig.getClientName());
+        singleServerConfig.setConnectionMinimumIdleSize(singleConfig.getConnMinIdleSize());
+        singleServerConfig.setConnectionPoolSize(singleConfig.getConnPoolSize());
+        singleServerConfig.setConnectTimeout(singleConfig.getConnTimeout());
+        singleServerConfig.setDatabase(singleConfig.getDatabase());
+        singleServerConfig.setDnsMonitoringInterval(singleConfig.getDnsMonitoringInterval());
+        singleServerConfig.setIdleConnectionTimeout(singleConfig.getIdleConnTimeout());
+        singleServerConfig.setKeepAlive(singleConfig.isKeepAlive());
+        singleServerConfig.setPassword(singleConfig.getPassword());
+        singleServerConfig.setRetryAttempts(singleConfig.getRetryAttempts());
+        singleServerConfig.setRetryInterval(singleConfig.getRetryInterval());
+        singleServerConfig.setSslEnableEndpointIdentification(lockConfig.isSslEnableEndpointIdentification());
         if (lockConfig.getSslKeystore() != null) {
-            singleConfig.setSslKeystore(new URI(lockConfig.getSslKeystore()));
+            singleServerConfig.setSslKeystore(new URI(lockConfig.getSslKeystore()));
         }
         if (lockConfig.getSslKeystorePassword() != null) {
-            singleConfig.setSslKeystorePassword(lockConfig.getSslKeystorePassword());
+            singleServerConfig.setSslKeystorePassword(lockConfig.getSslKeystorePassword());
         }
-        singleConfig.setSslProvider(LockCommonConstant.JDK.equalsIgnoreCase(lockConfig.getSslProvider()) ? SslProvider.JDK : SslProvider.OPENSSL);
+        singleServerConfig.setSslProvider(LockCommonConstant.JDK.equalsIgnoreCase(lockConfig.getSslProvider()) ? SslProvider.JDK : SslProvider.OPENSSL);
     }
 
     /**
@@ -170,8 +173,8 @@ public class LockAutoConfiguration {
     private void initClusterConfig(ClusterServersConfig clusterServerConfig) {
         ClusterConfig clusterConfig = lockConfig.getClusterServer();
         String[] addressArr = clusterConfig.getNodeAddresses().split(LockCommonConstant.COMMA);
-        Arrays.asList(addressArr).forEach(address ->
-                clusterServerConfig.addNodeAddress(String.format("%s%s", LockCommonConstant.REDIS_URL_PREFIX, address))
+        Arrays.asList(addressArr).forEach(
+                address -> clusterServerConfig.addNodeAddress(String.format("%s%s", LockCommonConstant.REDIS_URL_PREFIX, address))
         );
         clusterServerConfig.setScanInterval(clusterConfig.getScanInterval());
 
@@ -212,8 +215,8 @@ public class LockAutoConfiguration {
     private void initSentinelServersConfig(SentinelServersConfig sentinelServersConfig) throws URISyntaxException {
         SentinelConfig sentinelConfig = lockConfig.getSentinelServer();
         String[] addressArr = sentinelConfig.getSentinelAddresses().split(LockCommonConstant.COMMA);
-        Arrays.asList(addressArr).forEach(address ->
-                sentinelServersConfig.addSentinelAddress(String.format("%s%s", LockCommonConstant.REDIS_URL_PREFIX, address))
+        Arrays.asList(addressArr).forEach(
+                address -> sentinelServersConfig.addSentinelAddress(String.format("%s%s", LockCommonConstant.REDIS_URL_PREFIX, address))
         );
 
         ReadMode readMode = getReadMode(sentinelConfig.getReadMode());
@@ -244,30 +247,92 @@ public class LockAutoConfiguration {
         sentinelServersConfig.setTimeout(sentinelConfig.getTimeout());
         sentinelServersConfig.setConnectTimeout(sentinelConfig.getConnectTimeout());
         sentinelServersConfig.setIdleConnectionTimeout(sentinelConfig.getIdleConnectionTimeout());
-        sentinelServersConfig.setSslEnableEndpointIdentification(lockConfig.isSslEnableEndpointIdentification());
-        sentinelServersConfig.setClientName(lockConfig.getClientName());
-        if (lockConfig.getSslKeystore() != null) {
-            sentinelServersConfig.setSslKeystore(new URI(lockConfig.getSslKeystore()));
-        }
-        if (lockConfig.getSslKeystorePassword() != null) {
-            sentinelServersConfig.setSslKeystorePassword(lockConfig.getSslKeystorePassword());
-        }
-        if (lockConfig.getSslTruststore() != null) {
-            sentinelServersConfig.setSslTruststore(new URI(lockConfig.getSslTruststore()));
-        }
-        if (lockConfig.getSslTruststorePassword() != null) {
-            sentinelServersConfig.setSslTruststorePassword(lockConfig.getSslTruststorePassword());
-        }
-        sentinelServersConfig.setSslProvider(LockCommonConstant.JDK.equalsIgnoreCase(lockConfig.getSslProvider()) ? SslProvider.JDK : SslProvider.OPENSSL);
+        setLockSslConfigAndClientName(sentinelServersConfig);
     }
 
-    private void initReplicatedServersConfig(ReplicatedServersConfig replicatedServersConfig) {
-        // TODO Auto-generated method stub
+    /**
+     * 初始化云托管模式参数
+     *
+     * @param replicatedServersConfig  云托管模式配置
+     * @throws URISyntaxException URISyntaxException
+     */
+    private void initReplicatedServersConfig(ReplicatedServersConfig replicatedServersConfig) throws URISyntaxException  {
+        ReplicatedConfig replicatedConfig = lockConfig.getReplicatedServer();
 
+        String[] addressArr = replicatedConfig.getNodeAddresses().split(LockCommonConstant.COMMA);
+        Arrays.asList(addressArr).forEach(
+                address -> replicatedServersConfig.addNodeAddress(String.format("%s%s", LockCommonConstant.REDIS_URL_PREFIX, address))
+        );
+        ReadMode readMode = getReadMode(replicatedConfig.getReadMode());
+        ValidateUtil.notNull(readMode, UnknownReadModeException.class, "未知读取操作的负载均衡模式类型");
+        replicatedServersConfig.setReadMode(readMode);
+
+        SubscriptionMode subscriptionMode = getSubscriptionMode(replicatedConfig.getSubscriptionMode());
+        ValidateUtil.notNull(subscriptionMode, UnknownSubscriptionModeException.class, "未知订阅操作的负载均衡模式类型");
+        replicatedServersConfig.setSubscriptionMode(subscriptionMode);
+
+        LoadBalancer loadBalancer = getLoadBalancer(replicatedConfig.getLoadBalancer(), replicatedConfig.getWeightMaps(), replicatedConfig.getDefaultWeight());
+        ValidateUtil.notNull(loadBalancer, UnknownLoadBalancerException.class, "未知负载均衡算法类型");
+        replicatedServersConfig.setLoadBalancer(loadBalancer);
+
+        replicatedServersConfig.setScanInterval(replicatedConfig.getScanInterval());
+        replicatedServersConfig.setDatabase(replicatedConfig.getDatabase());
+        replicatedServersConfig.setSlaveConnectionPoolSize(replicatedConfig.getSlaveConnectionPoolSize());
+        replicatedServersConfig.setMasterConnectionPoolSize(replicatedConfig.getMasterConnectionPoolSize());
+        replicatedServersConfig.setSubscriptionConnectionPoolSize(replicatedConfig.getSubscriptionConnectionPoolSize());
+        replicatedServersConfig.setSlaveConnectionMinimumIdleSize(replicatedConfig.getSlaveConnectionMinimumIdleSize());
+        replicatedServersConfig.setMasterConnectionMinimumIdleSize(replicatedConfig.getMasterConnectionMinimumIdleSize());
+        replicatedServersConfig.setSubscriptionConnectionMinimumIdleSize(replicatedConfig.getSubscriptionConnectionMinimumIdleSize());
+        replicatedServersConfig.setDnsMonitoringInterval(replicatedConfig.getDnsMonitoringInterval());
+        replicatedServersConfig.setSubscriptionsPerConnection(replicatedConfig.getSubscriptionsPerConnection());
+        replicatedServersConfig.setPassword(replicatedConfig.getPassword());
+        replicatedServersConfig.setRetryAttempts(replicatedConfig.getRetryAttempts());
+        replicatedServersConfig.setRetryInterval(replicatedConfig.getRetryInterval());
+        replicatedServersConfig.setTimeout(replicatedConfig.getTimeout());
+        replicatedServersConfig.setConnectTimeout(replicatedConfig.getConnectTimeout());
+        replicatedServersConfig.setIdleConnectionTimeout(replicatedConfig.getIdleConnectionTimeout());
+
+        setLockSslConfigAndClientName(replicatedServersConfig);
     }
 
-    private void initMasterSlaveConfig(MasterSlaveServersConfig masterSlaveConfig) {
-        //masterSlaveConfig.setmas
+    /**
+     * 初始化主从模式参数
+     *
+     * @param masterSlaveServersConfig 主从模式配置
+     * @throws URISyntaxException URISyntaxException
+     */
+    private void initMasterSlaveConfig(MasterSlaveServersConfig masterSlaveServersConfig) throws URISyntaxException {
+        MasterSlaveConfig masterSlaveConfig = lockConfig.getMasterSlaveServer();
+        masterSlaveServersConfig.setMasterAddress(masterSlaveConfig.getMasterAddress());
+
+        ReadMode readMode = getReadMode(masterSlaveConfig.getReadMode());
+        ValidateUtil.notNull(readMode, UnknownReadModeException.class, "未知读取操作的负载均衡模式类型");
+        masterSlaveServersConfig.setReadMode(readMode);
+
+        SubscriptionMode subscriptionMode = getSubscriptionMode(masterSlaveConfig.getSubMode());
+        ValidateUtil.notNull(subscriptionMode, UnknownSubscriptionModeException.class, "未知订阅操作的负载均衡模式类型");
+        masterSlaveServersConfig.setSubscriptionMode(subscriptionMode);
+
+        LoadBalancer loadBalancer = getLoadBalancer(masterSlaveConfig.getLoadBalancer(), masterSlaveConfig.getWeightMaps(), masterSlaveConfig.getDefaultWeight());
+        ValidateUtil.notNull(loadBalancer, UnknownLoadBalancerException.class, "未知负载均衡算法类型");
+        masterSlaveServersConfig.setLoadBalancer(loadBalancer);
+
+        masterSlaveServersConfig.setDatabase(masterSlaveConfig.getDatabase());
+        masterSlaveServersConfig.setSlaveConnectionPoolSize(masterSlaveConfig.getSlaveConnectionPoolSize());
+        masterSlaveServersConfig.setMasterConnectionPoolSize(masterSlaveConfig.getMasterConnectionPoolSize());
+        masterSlaveServersConfig.setSubscriptionConnectionPoolSize(masterSlaveConfig.getSubscriptionConnectionPoolSize());
+        masterSlaveServersConfig.setSlaveConnectionMinimumIdleSize(masterSlaveConfig.getSlaveConnectionMinimumIdleSize());
+        masterSlaveServersConfig.setMasterConnectionMinimumIdleSize(masterSlaveConfig.getMasterConnectionMinimumIdleSize());
+        masterSlaveServersConfig.setSubscriptionConnectionMinimumIdleSize(masterSlaveConfig.getSubscriptionConnectionMinimumIdleSize());
+        masterSlaveServersConfig.setDnsMonitoringInterval(masterSlaveConfig.getDnsMonitoringInterval());
+        masterSlaveServersConfig.setSubscriptionsPerConnection(masterSlaveConfig.getSubscriptionsPerConnection());
+        masterSlaveServersConfig.setPassword(masterSlaveConfig.getPassword());
+        masterSlaveServersConfig.setRetryAttempts(masterSlaveConfig.getRetryAttempts());
+        masterSlaveServersConfig.setRetryInterval(masterSlaveConfig.getRetryInterval());
+        masterSlaveServersConfig.setTimeout(masterSlaveConfig.getTimeout());
+        masterSlaveServersConfig.setConnectTimeout(masterSlaveConfig.getConnectTimeout());
+        masterSlaveServersConfig.setIdleConnectionTimeout(masterSlaveConfig.getIdleConnectionTimeout());
+        setLockSslConfigAndClientName(masterSlaveServersConfig);
     }
 
     /**
@@ -288,8 +353,8 @@ public class LockAutoConfiguration {
         if (LoadBalancerTypeConstant.WEIGHTED_ROUND_ROBIN_BALANCER.equals(loadBalancerType)) {
             Map<String, Integer> weights = new HashMap<>(16);
             String[] weightMaps = customerWeightMaps.split(LockCommonConstant.SEMICOLON);
-            Arrays.asList(weightMaps).forEach(weightMap ->
-                    weights.put(LockCommonConstant.REDIS_URL_PREFIX + weightMap.split(LockCommonConstant.COMMA)[0], Integer.parseInt(weightMap.split(LockCommonConstant.COMMA)[1]))
+            Arrays.asList(weightMaps).forEach(
+                    weightMap -> weights.put(LockCommonConstant.REDIS_URL_PREFIX + weightMap.split(LockCommonConstant.COMMA)[0], Integer.parseInt(weightMap.split(LockCommonConstant.COMMA)[1]))
             );
             return new WeightedRoundRobinBalancer(weights, defaultWeight);
         }
@@ -329,6 +394,31 @@ public class LockAutoConfiguration {
             return SubscriptionMode.MASTER;
         }
         return null;
+    }
+
+    /**
+     * 设置SSL配置
+     *
+     * @param lockAutoConfig lockAutoConfig
+     * @param <T> lockAutoConfig
+     * @throws URISyntaxException URISyntaxException
+     */
+    private <T extends BaseMasterSlaveServersConfig> void setLockSslConfigAndClientName(T lockAutoConfig) throws URISyntaxException {
+        lockAutoConfig.setClientName(lockConfig.getClientName());
+        lockAutoConfig.setSslEnableEndpointIdentification(lockConfig.isSslEnableEndpointIdentification());
+        if (lockConfig.getSslKeystore() != null) {
+            lockAutoConfig.setSslKeystore(new URI(lockConfig.getSslKeystore()));
+        }
+        if (lockConfig.getSslKeystorePassword() != null) {
+            lockAutoConfig.setSslKeystorePassword(lockConfig.getSslKeystorePassword());
+        }
+        if (lockConfig.getSslTruststore() != null) {
+            lockAutoConfig.setSslTruststore(new URI(lockConfig.getSslTruststore()));
+        }
+        if (lockConfig.getSslTruststorePassword() != null) {
+            lockAutoConfig.setSslTruststorePassword(lockConfig.getSslTruststorePassword());
+        }
+        lockAutoConfig.setSslProvider(LockCommonConstant.JDK.equalsIgnoreCase(lockConfig.getSslProvider()) ? SslProvider.JDK : SslProvider.OPENSSL);
     }
 
 }
