@@ -204,8 +204,9 @@ public class LockAutoConfiguration {
      * 初始化哨兵模式参数
      *
      * @param sentinelServersConfig 哨兵模式配置
+     * @throws URISyntaxException URISyntaxException
      */
-    private void initSentinelServersConfig(SentinelServersConfig sentinelServersConfig) {
+    private void initSentinelServersConfig(SentinelServersConfig sentinelServersConfig) throws URISyntaxException {
         SentinelConfig sentinelConfig = lockConfig.getSentinelServer();
         String[] addressArr = sentinelConfig.getSentinelAddresses().split(",");
         Arrays.asList(addressArr).forEach(address ->
@@ -238,15 +239,23 @@ public class LockAutoConfiguration {
         sentinelServersConfig.setRetryAttempts(sentinelConfig.getRetryAttempts());
         sentinelServersConfig.setRetryInterval(sentinelConfig.getRetryInterval());
         sentinelServersConfig.setTimeout(sentinelConfig.getTimeout());
-        sentinelServersConfig.setClientName(sentinelConfig.getClientName());
         sentinelServersConfig.setConnectTimeout(sentinelConfig.getConnectTimeout());
         sentinelServersConfig.setIdleConnectionTimeout(sentinelConfig.getIdleConnectionTimeout());
-        sentinelServersConfig.setSslEnableEndpointIdentification(sentinelConfig.isSslEnableEndpointIdentification());
-        sentinelServersConfig.setSslProvider(sentinelConfig.getSslProvider());
-        sentinelServersConfig.setSslTruststore(sentinelConfig.getSslTrustStore());
-        sentinelServersConfig.setSslTruststorePassword(sentinelConfig.getSslTrustStorePassword());
-        sentinelServersConfig.setSslKeystore(sentinelConfig.getSslKeystore());
-        sentinelServersConfig.setSslKeystorePassword(sentinelConfig.getSslKeystorePassword());
+        sentinelServersConfig.setSslEnableEndpointIdentification(lockConfig.isSslEnableEndpointIdentification());
+        sentinelServersConfig.setClientName(lockConfig.getClientName());
+        if (lockConfig.getSslKeystore() != null) {
+            sentinelServersConfig.setSslKeystore(new URI(lockConfig.getSslKeystore()));
+        }
+        if (lockConfig.getSslKeystorePassword() != null) {
+            sentinelServersConfig.setSslKeystorePassword(lockConfig.getSslKeystorePassword());
+        }
+        if (lockConfig.getSslTruststore() != null) {
+            sentinelServersConfig.setSslTruststore(new URI(lockConfig.getSslTruststore()));
+        }
+        if (lockConfig.getSslTruststorePassword() != null) {
+            sentinelServersConfig.setSslTruststorePassword(lockConfig.getSslTruststorePassword());
+        }
+        sentinelServersConfig.setSslProvider("JDK".equalsIgnoreCase(lockConfig.getSslProvider()) ? SslProvider.JDK : SslProvider.OPENSSL);
     }
 
     private void initReplicatedServersConfig(ReplicatedServersConfig replicatedServersConfig) {
@@ -271,7 +280,7 @@ public class LockAutoConfiguration {
             return new RoundRobinLoadBalancer();
         }
         if ("WeightedRoundRobinBalancer".equals(loadBalancerType)) {
-            Map<String, Integer> weights = new HashMap<>();
+            Map<String, Integer> weights = new HashMap<>(16);
             String[] weightMaps = customerWeightMaps.split(";");
             Arrays.asList(weightMaps).forEach(weightMap ->
                     weights.put("redis://" + weightMap.split(",")[0], Integer.parseInt(weightMap.split(",")[1]))

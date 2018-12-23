@@ -290,34 +290,6 @@ public class LockConfig {
          * 单个连接最大订阅数量
          */
         private int subscriptionsPerConnection = 5;
-        /**
-         * 客户端名称
-         */
-        private String clientName;
-        /**
-         * 启用SSL终端识别
-         */
-        private boolean sslEnableEndpointIdentification = true;
-        /**
-         * SSL实现方式
-         */
-        private SslProvider sslProvider = SslProvider.JDK;
-        /**
-         * SSL信任证书库路径
-         */
-        private URI sslTrustStore;
-        /**
-         * SSL信任证书库密码
-         */
-        private String sslTrustStorePassword;
-        /**
-         * SSL钥匙库密码
-         */
-        private URI sslKeystore;
-        /**
-         * SSL钥匙库密码
-         */
-        private String sslKeystorePassword;
 
         public long getDnsMonitoringInterval() {
             return dnsMonitoringInterval;
@@ -509,62 +481,6 @@ public class LockConfig {
 
         public void setSubscriptionsPerConnection(int subscriptionsPerConnection) {
             this.subscriptionsPerConnection = subscriptionsPerConnection;
-        }
-
-        public String getClientName() {
-            return clientName;
-        }
-
-        public void setClientName(String clientName) {
-            this.clientName = clientName;
-        }
-
-        public boolean isSslEnableEndpointIdentification() {
-            return sslEnableEndpointIdentification;
-        }
-
-        public void setSslEnableEndpointIdentification(boolean sslEnableEndpointIdentification) {
-            this.sslEnableEndpointIdentification = sslEnableEndpointIdentification;
-        }
-
-        public SslProvider getSslProvider() {
-            return sslProvider;
-        }
-
-        public void setSslProvider(SslProvider sslProvider) {
-            this.sslProvider = sslProvider;
-        }
-
-        public URI getSslTrustStore() {
-            return sslTrustStore;
-        }
-
-        public void setSslTrustStore(URI sslTrustStore) {
-            this.sslTrustStore = sslTrustStore;
-        }
-
-        public String getSslTrustStorePassword() {
-            return sslTrustStorePassword;
-        }
-
-        public void setSslTrustStorePassword(String sslTrustStorePassword) {
-            this.sslTrustStorePassword = sslTrustStorePassword;
-        }
-
-        public URI getSslKeystore() {
-            return sslKeystore;
-        }
-
-        public void setSslKeystore(URI sslKeystore) {
-            this.sslKeystore = sslKeystore;
-        }
-
-        public String getSslKeystorePassword() {
-            return sslKeystorePassword;
-        }
-
-        public void setSslKeystorePassword(String sslKeystorePassword) {
-            this.sslKeystorePassword = sslKeystorePassword;
         }
     }
 
