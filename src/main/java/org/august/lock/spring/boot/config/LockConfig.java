@@ -215,6 +215,16 @@ public class LockConfig {
          */
         private String loadBalancer = "RoundRobinLoadBalancer";
         /**
+         * 默认权重值，当负载均衡算法是权重轮询调度算法时该属性有效
+         */
+        private int defaultWeight = 0;
+        /**
+         * 权重值设置，格式为
+         * host1:port1,权重值1;host2:port2,权重值2
+         * 当负载均衡算法是权重轮询调度算法时该属性有效
+         */
+        private String weightMaps;
+        /**
          * 从节点发布和订阅连接的最小空闲连接数
          */
         private int subscriptionConnectionMinimumIdleSize = 1;
@@ -355,6 +365,22 @@ public class LockConfig {
 
         public void setLoadBalancer(String loadBalancer) {
             this.loadBalancer = loadBalancer;
+        }
+
+        public int getDefaultWeight() {
+            return defaultWeight;
+        }
+
+        public void setDefaultWeight(int defaultWeight) {
+            this.defaultWeight = defaultWeight;
+        }
+
+        public String getWeightMaps() {
+            return weightMaps;
+        }
+
+        public void setWeightMaps(String weightMaps) {
+            this.weightMaps = weightMaps;
         }
 
         public int getSubscriptionConnectionMinimumIdleSize() {
