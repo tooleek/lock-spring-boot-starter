@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import org.august.lock.spring.boot.constant.LockCommonConstant;
+
 public class LockKey {
 	
 	private List<String> keyList=new ArrayList<>();
@@ -46,7 +48,7 @@ public class LockKey {
 		private TimeUnit timeUnit=TimeUnit.SECONDS;
 		
 		public Builder appendKey(String key) {
-			keyList.add(key);
+			keyList.add(LockCommonConstant.KEY_PREFIX + key);
 			return this;
 		}
 		

@@ -54,7 +54,9 @@ public class LockInterceptor {
 	    }
 	    
 	    if(keyBuilder.isEmptyKeys()) {
-	    	keyBuilder.appendKey(LockUtil.generateRandomKey());
+	    	String className = joinPoint.getTarget().getClass().getName();
+	    	String methodName = methodSignature.getName();
+	    	keyBuilder.appendKey(new StringBuilder(className).append(".").append(methodName).toString());
 	    }
 	    LockKey lockKey=keyBuilder.build();
 	    

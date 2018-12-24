@@ -33,4 +33,8 @@ public interface LockCommonConstant {
      * redis默认URL前缀
      */
     String REDIS_URL_PREFIX = "redis://";
+    /**
+     * 锁的前缀
+     */
+    String KEY_PREFIX="lock:key:";
 }

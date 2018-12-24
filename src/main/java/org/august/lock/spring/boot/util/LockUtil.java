@@ -1,6 +1,6 @@
 package org.august.lock.spring.boot.util;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Random;
 
@@ -16,10 +16,10 @@ public class LockUtil {
 	 * @return
 	 */
 	public static String generateRandomKey() {
-		String dateKey = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS"));
+		String dateKey = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS"));
 		Random random=new Random();
 		int randomKey = random.ints(100000, 999999).limit(1).findFirst().getAsInt();
 		return new StringBuilder(dateKey).append(randomKey).toString();
 	}
-
+	
 }
