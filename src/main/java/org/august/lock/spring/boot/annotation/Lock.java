@@ -10,7 +10,7 @@ import java.util.concurrent.TimeUnit;
 import org.august.lock.spring.boot.enumeration.LockType;
 
 /**
- * 常规锁的注解，包括：可重入锁、公平锁、读写锁
+ * 锁的注解
  * @author TanRq
  *
  */
