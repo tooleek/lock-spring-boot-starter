@@ -2,7 +2,10 @@ package org.august.lock.spring.boot.core;
 
 import java.lang.reflect.Method;
 
+import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.ProceedingJoinPoint;
+import org.aspectj.lang.annotation.AfterReturning;
+import org.aspectj.lang.annotation.AfterThrowing;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.reflect.MethodSignature;
@@ -11,7 +14,6 @@ import org.august.lock.spring.boot.annotation.Lock;
 import org.august.lock.spring.boot.core.LockKey.Builder;
 import org.august.lock.spring.boot.factory.ServiceBeanFactory;
 import org.august.lock.spring.boot.service.LockService;
-import org.august.lock.spring.boot.util.LockUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,6 +32,8 @@ public class LockInterceptor {
 	
 	@Autowired
 	private ServiceBeanFactory serviceBeanFactory;
+	
+	private ThreadLocal<LockService> localLockService = new ThreadLocal<>();
 	
 	@Around(value="@annotation(org.august.lock.spring.boot.annotation.Lock)")
 	public Object lockHandle(ProceedingJoinPoint joinPoint) throws Throwable {
@@ -62,17 +66,22 @@ public class LockInterceptor {
 	    
 	    LockService lockService = serviceBeanFactory.getService(lock.lockType());
 	    lockService.setLockKey(lockKey);
-	    Object proceedObj = null;
-	    try {
-	    	lockService.lock();
-	    	proceedObj = joinPoint.proceed();
-	    }catch(Exception e) {
-	    	logger.error(e.getMessage(), e);
-	    }finally {
-	    	lockService.release();
-	    }
 	    
-		return proceedObj;
+	    localLockService.set(lockService);
+	    
+	    lockService.lock();
+	    
+	    return joinPoint.proceed();
+	}
+	
+	@AfterReturning(value="@annotation(org.august.lock.spring.boot.annotation.Lock)")
+	public void afterReturning(JoinPoint joinPoint) {
+		localLockService.get().release();
+	}
+	
+	@AfterThrowing(value="@annotation(org.august.lock.spring.boot.annotation.Lock)")
+	public void afterThrowing(JoinPoint joinPoint) {
+		localLockService.get().release();
 	}
 	
 }
