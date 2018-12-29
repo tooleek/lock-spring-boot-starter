@@ -62,7 +62,7 @@ public class LockAutoConfiguration {
      * @return RedissonClient
      */
     @Bean(name = "lockRedissonClient", destroyMethod = "shutdown")
-    @ConditionalOnMissingBean
+    //@ConditionalOnMissingBean
     public RedissonClient redissonClient() throws URISyntaxException {
         Config config = new Config();
         ServerPattern serverPattern = MapStore.getServerPattern(lockConfig.getPattern());
