@@ -30,7 +30,6 @@ import org.redisson.connection.balancer.RandomLoadBalancer;
 import org.redisson.connection.balancer.RoundRobinLoadBalancer;
 import org.redisson.connection.balancer.WeightedRoundRobinBalancer;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -303,8 +302,13 @@ public class LockAutoConfiguration {
      */
     private void initMasterSlaveConfig(MasterSlaveServersConfig masterSlaveServersConfig) throws URISyntaxException {
         MasterSlaveConfig masterSlaveConfig = lockConfig.getMasterSlaveServer();
-        masterSlaveServersConfig.setMasterAddress(masterSlaveConfig.getMasterAddress());
-
+        masterSlaveServersConfig.setMasterAddress(String.format("%s%s", LockCommonConstant.REDIS_URL_PREFIX, masterSlaveConfig.getMasterAddress()));
+        String[] addressArr = masterSlaveConfig.getSlaveAddresses().split(LockCommonConstant.COMMA);
+        
+        Arrays.asList(addressArr).forEach( address -> {
+        	masterSlaveServersConfig.addSlaveAddress(String.format("%s%s", LockCommonConstant.REDIS_URL_PREFIX, address));
+        });
+        
         ReadMode readMode = getReadMode(masterSlaveConfig.getReadMode());
         ValidateUtil.notNull(readMode, UnknownReadModeException.class, "未知读取操作的负载均衡模式类型");
         masterSlaveServersConfig.setReadMode(readMode);
