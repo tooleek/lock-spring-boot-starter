@@ -11,7 +11,7 @@
     <dependency>
         <groupId>org.august.spring.boot</groupId>
         <artifactId>lock-spring-boot-starter</artifactId>
-        <version>0.0.1-SNAPSHOT</version>
+        <version>1.0.0</version>
     </dependency>
    ```
 3. 在Spring Boot的项目配置文件application.yml中添加相应的配置，如：
