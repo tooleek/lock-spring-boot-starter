@@ -4,7 +4,7 @@
 
   <groupId>org.august.spring.boot</groupId>
   <artifactId>lock-spring-boot-starter</artifactId>
-  <version>0.0.1-SNAPSHOT</version>
+  <version>1.0.0</version>
   <packaging>jar</packaging>
 
   <name>lock-spring-boot-starter</name>
