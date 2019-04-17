@@ -55,15 +55,17 @@ public class LockInterceptor {
 
         Object[] args = joinPoint.getArgs();
 
-        if (null != realMethod.getAnnotation(Key.class)) {
-            SelectionStrategy strategy = new SelectionStrategy(new MethodKeyStrategy());
-            strategy.addKey(keyBuilder, realMethod, args);
-        } else if (null == realMethod.getAnnotation(Key.class)) {
-            SelectionStrategy strategy = new SelectionStrategy(new PropertiesKeyStrategy());
-            strategy.addKey(keyBuilder, realMethod, args);
-        } else {
-            SelectionStrategy strategy = new SelectionStrategy(new ParameterKeyStrategy());
-            strategy.addKey(keyBuilder, realMethod, args);
+        SelectionStrategy strategy = new SelectionStrategy(new ParameterKeyStrategy());
+        strategy.addKey(keyBuilder, realMethod, args);
+
+        if (keyBuilder.isEmptyKeys() && null != realMethod.getAnnotation(Key.class)) {
+            SelectionStrategy selectionStrategy = new SelectionStrategy(new MethodKeyStrategy());
+            selectionStrategy.addKey(keyBuilder, realMethod, args);
+        }
+
+        if (keyBuilder.isEmptyKeys() && null == realMethod.getAnnotation(Key.class)) {
+            SelectionStrategy selectionStrategy = new SelectionStrategy(new PropertiesKeyStrategy());
+            selectionStrategy.addKey(keyBuilder, realMethod, args);
         }
 
         if (keyBuilder.isEmptyKeys()) {
