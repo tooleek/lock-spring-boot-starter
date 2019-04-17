@@ -1,6 +1,7 @@
 package org.august.lock.spring.boot.core.strategy;
 
-import org.august.lock.spring.boot.core.LockKey;
+import org.august.lock.spring.boot.core.LockKey.Builder;
+import org.august.lock.spring.boot.exception.KeyBuilderException;
 
 import java.lang.reflect.Method;
 
@@ -10,7 +11,19 @@ import java.lang.reflect.Method;
  * @CreateTime: 2019-04-17 10:01
  * @Description:
  */
-public interface KeyStrategy {
+public abstract class KeyStrategy {
+	
+	protected String className;
+	protected String methodName;
+	protected Method realMethod;
+	protected Object[] args;
+	
+	public KeyStrategy(String className,String methodName,Method realMethod, Object[] args) {
+		this.className=className;
+		this.methodName=methodName;
+		this.realMethod=realMethod;
+		this.args=args;
+	}
 
     /**
      * 添加锁
@@ -18,6 +31,6 @@ public interface KeyStrategy {
      * @param realMethod
      * @param args
      */
-    public void addKey(LockKey.Builder keyBuilder, Method realMethod, Object[] args) throws IllegalAccessException;
+	public abstract Builder generateBuilder() throws KeyBuilderException;
 
 }

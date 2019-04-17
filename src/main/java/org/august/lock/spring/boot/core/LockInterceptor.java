@@ -10,10 +10,11 @@ import org.aspectj.lang.reflect.MethodSignature;
 import org.august.lock.spring.boot.annotation.Key;
 import org.august.lock.spring.boot.annotation.Lock;
 import org.august.lock.spring.boot.core.LockKey.Builder;
+import org.august.lock.spring.boot.core.strategy.ClassKeyStrategy;
+import org.august.lock.spring.boot.core.strategy.KeyStrategy;
 import org.august.lock.spring.boot.core.strategy.MethodKeyStrategy;
 import org.august.lock.spring.boot.core.strategy.ParameterKeyStrategy;
 import org.august.lock.spring.boot.core.strategy.PropertiesKeyStrategy;
-import org.august.lock.spring.boot.core.strategy.SelectionStrategy;
 import org.august.lock.spring.boot.factory.ServiceBeanFactory;
 import org.august.lock.spring.boot.service.LockService;
 import org.slf4j.Logger;
@@ -21,6 +22,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 
 /**
@@ -48,33 +50,26 @@ public class LockInterceptor {
 
         Lock lock = realMethod.getAnnotation(Lock.class);
 
-        Builder keyBuilder = LockKey.newBuilder()
-                .leaseTime(lock.leaseTime())
-                .waitTime(lock.waitTime())
-                .timeUnit(lock.timeUnit());
+//        Builder keyBuilder = LockKey.newBuilder()
+//                .leaseTime(lock.leaseTime())
+//                .waitTime(lock.waitTime())
+//                .timeUnit(lock.timeUnit());
 
         Object[] args = joinPoint.getArgs();
+        
+        String className = joinPoint.getTarget().getClass().getName();
+        String methodName = methodSignature.getName();
+        
+        KeyStrategy keyStrategy = getKeyStrategy(className, methodName, realMethod,args);
 
-        SelectionStrategy strategy = new SelectionStrategy(new ParameterKeyStrategy());
-        strategy.addKey(keyBuilder, realMethod, args);
-
-        if (keyBuilder.isEmptyKeys() && null != realMethod.getAnnotation(Key.class)) {
-            SelectionStrategy selectionStrategy = new SelectionStrategy(new MethodKeyStrategy());
-            selectionStrategy.addKey(keyBuilder, realMethod, args);
-        }
-
-        if (keyBuilder.isEmptyKeys() && null == realMethod.getAnnotation(Key.class)) {
-            SelectionStrategy selectionStrategy = new SelectionStrategy(new PropertiesKeyStrategy());
-            selectionStrategy.addKey(keyBuilder, realMethod, args);
-        }
-
-        if (keyBuilder.isEmptyKeys()) {
-            String className = joinPoint.getTarget().getClass().getName();
-            String methodName = methodSignature.getName();
-            keyBuilder.appendKey(new StringBuilder(className).append(".").append(methodName).toString());
-        }
-        LockKey lockKey = keyBuilder.build();
-
+        Builder keyBuilder = new KeyStrategyContext(keyStrategy).generateBuilder();
+        
+        LockKey lockKey = keyBuilder
+        		.leaseTime(lock.leaseTime())
+        		.waitTime(lock.waitTime())
+        		.timeUnit(lock.timeUnit())
+        		.build();
+        
         LockService lockService = serviceBeanFactory.getService(lock.lockType());
         lockService.setLockKey(lockKey);
 
@@ -83,6 +78,33 @@ public class LockInterceptor {
         lockService.lock();
 
         return joinPoint.proceed();
+    }
+    
+    private KeyStrategy getKeyStrategy(String className,String methodName,Method realMethod, Object[] args) {
+    	//参数锁
+    	for (int i = 0; i < realMethod.getParameters().length; i++) {
+            if (realMethod.getParameters()[i].isAnnotationPresent(Key.class)) {
+                return new ParameterKeyStrategy(className, methodName, realMethod, args);
+            }
+        }
+    	//方法锁
+    	if(realMethod.getAnnotation(Key.class).value().length>0) {
+    		return new MethodKeyStrategy(className, methodName, realMethod, args);
+    	}
+    	//属性锁
+    	for (int i = 0; i < args.length; i++) {
+            Object obj = args[i];
+            @SuppressWarnings("rawtypes")
+			Class objectClass = obj.getClass();
+            Field[] fields = objectClass.getDeclaredFields();
+            for (Field field : fields) {
+                if (null != field.getAnnotation(Key.class)) {
+                    return new PropertiesKeyStrategy(className, methodName, realMethod, args);
+                }
+            }
+        }
+    	//类名和方法名作为key的锁
+    	return new ClassKeyStrategy(className, methodName, realMethod, args);
     }
 
     @AfterReturning(value = "@annotation(org.august.lock.spring.boot.annotation.Lock)")
