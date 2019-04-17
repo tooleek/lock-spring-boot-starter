@@ -10,6 +10,10 @@ import org.aspectj.lang.reflect.MethodSignature;
 import org.august.lock.spring.boot.annotation.Key;
 import org.august.lock.spring.boot.annotation.Lock;
 import org.august.lock.spring.boot.core.LockKey.Builder;
+import org.august.lock.spring.boot.core.strategy.MethodKeyStrategy;
+import org.august.lock.spring.boot.core.strategy.ParameterKeyStrategy;
+import org.august.lock.spring.boot.core.strategy.PropertiesKeyStrategy;
+import org.august.lock.spring.boot.core.strategy.SelectionStrategy;
 import org.august.lock.spring.boot.factory.ServiceBeanFactory;
 import org.august.lock.spring.boot.service.LockService;
 import org.slf4j.Logger;
@@ -17,7 +21,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 
 /**
@@ -52,48 +55,15 @@ public class LockInterceptor {
 
         Object[] args = joinPoint.getArgs();
 
-        //parameter lock
-        boolean isParameterLock = false;
-        for (int i = 0; i < realMethod.getParameters().length; i++) {
-            if (realMethod.getParameters()[i].isAnnotationPresent(Key.class)) {
-                keyBuilder.appendKey(args[i].toString());
-                isParameterLock = true;
-            }
-        }
-        if (!isParameterLock) {
-            //methods lock
-            if (null != realMethod.getAnnotation(Key.class)) {
-                String[] values = realMethod.getAnnotation(Key.class).value();
-                for (int i = 0; i < args.length; i++) {
-                    Object obj = args[i];
-                    Class objectClass = obj.getClass();
-                    Field field = objectClass.getDeclaredFields()[0];
-                    for (String value : values) {
-                        String[] propertyName = value.split("\\.");
-                        String[] className = objectClass.getName().split("\\.");
-                        if (propertyName[0].equals(className[className.length - 1])) {
-                            field.setAccessible(true);
-                            if (field.getName().equals(propertyName[1])) {
-                                keyBuilder.appendKey(field.get(obj).toString());
-                            }
-                        }
-                    }
-                }
-            }
-            //properties lock
-            if (null == realMethod.getAnnotation(Key.class)) {
-                for (int i = 0; i < args.length; i++) {
-                    Object obj = args[i];
-                    Class objectClass = obj.getClass();
-                    Field[] fields = objectClass.getDeclaredFields();
-                    for (Field field : fields) {
-                        if (null != field.getAnnotation(Key.class)) {
-                            field.setAccessible(true);
-                            keyBuilder.appendKey(field.get(obj).toString());
-                        }
-                    }
-                }
-            }
+        if (null != realMethod.getAnnotation(Key.class)) {
+            SelectionStrategy strategy = new SelectionStrategy(new MethodKeyStrategy());
+            strategy.addKey(keyBuilder, realMethod, args);
+        } else if (null == realMethod.getAnnotation(Key.class)) {
+            SelectionStrategy strategy = new SelectionStrategy(new PropertiesKeyStrategy());
+            strategy.addKey(keyBuilder, realMethod, args);
+        } else {
+            SelectionStrategy strategy = new SelectionStrategy(new ParameterKeyStrategy());
+            strategy.addKey(keyBuilder, realMethod, args);
         }
 
         if (keyBuilder.isEmptyKeys()) {
