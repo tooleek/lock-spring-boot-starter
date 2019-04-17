@@ -88,7 +88,7 @@ public class LockInterceptor {
             }
         }
     	//方法锁
-    	if(realMethod.getAnnotation(Key.class).value().length>0) {
+    	if(null != realMethod.getAnnotation(Key.class)) {
     		return new MethodKeyStrategy(className, methodName, realMethod, args);
     	}
     	//属性锁
