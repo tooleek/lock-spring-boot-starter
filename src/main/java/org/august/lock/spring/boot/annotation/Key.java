@@ -6,13 +6,16 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 
+
 /**
  * 用于分布式锁的key
  * @author TanRq
  *
  */
-@Target(ElementType.PARAMETER)
+@Target({ElementType.PARAMETER,ElementType.FIELD,ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Key {
+
+    String[] value() default {};
 
 }

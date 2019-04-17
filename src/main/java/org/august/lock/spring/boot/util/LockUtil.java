@@ -21,5 +21,5 @@ public class LockUtil {
 		int randomKey = random.ints(100000, 999999).limit(1).findFirst().getAsInt();
 		return new StringBuilder(dateKey).append(randomKey).toString();
 	}
-	
+
 }
