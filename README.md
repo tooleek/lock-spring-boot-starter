@@ -38,7 +38,7 @@
    > waitTime:最长等待时间
    > timeUnit:锁时长单位
 
-    DEMO地址如下：https://gitee.com/yizhigui/lock-spring-boot-starter-demo
+    DEMO地址如下：https://gitee.com/tooleek/lock-spring-boot-starter-demo
 #### 参与贡献
 
 1. Fork 本仓库
