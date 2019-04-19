@@ -1,7 +1,7 @@
 <html>
 
 	<head>
-		<title>分布式锁</title>
+		<title>分布式锁[lock-spring-boot-starter]</title>
 		<meta charset="utf-8" />
 		<script type="text/javascript" src="js/jquery-3.4.0.min.js"></script>
 		<link rel="stylesheet" href="css/index.css" />
@@ -10,10 +10,10 @@
 		<script>
 			var _hmt = _hmt || [];
 			(function() {
-			  var hm = document.createElement("script");
-			  hm.src = "https://hm.baidu.com/hm.js?3c1294dec25af0b1781f2a2501122878";
-			  var s = document.getElementsByTagName("script")[0]; 
-			  s.parentNode.insertBefore(hm, s);
+				var hm = document.createElement("script");
+				hm.src = "https://hm.baidu.com/hm.js?3c1294dec25af0b1781f2a2501122878";
+				var s = document.getElementsByTagName("script")[0];
+				s.parentNode.insertBefore(hm, s);
 			})();
 		</script>
 	</head>
@@ -46,20 +46,76 @@
 				<div class="title">
 					<span>开始使用</span>
 				</div>
+				<div class="sub-title">
+					<span>介绍</span>
+				</div>
+				<div class="desc-content">
+					lock-spring-boot-starter是一个基于Spring Boot的starter机制编写的分布式锁工具。 与其他分布式锁不同的是,使用起来更方便快捷,只需要通过注解@Lock的方式即可实现对方法进行加锁。 考虑到加锁功能的稳定性与使用的普及性,lock-spring-boot-starter并没有单独编写额外的代码,而是借助Redisson强大的分布式锁功能来实现。 使得lock-spring-boot-starter具有超强的分布式锁能力。
+				</div>
+				<div class="sub-title">
+					<span>锁类型支持</span>
+				</div>
+				<div class="desc-content">
+					<div>可重入锁</div>
+					<div>公平锁</div>
+					<div>联锁</div>
+					<div>红锁</div>
+					<div>读锁</div>
+					<div>写锁</div>
+				</div>
+				<div class="sub-title">
+					<span>使用说明</span>
+				</div>
+				<div class="desc-content">
+					1. 创建Spring Boot项目
+				</div>
+				<div class="desc-content">
+					2. 引入maven依赖
+				</div>
 				<div>
 					<pre><code data-language="java">
-/**
- * lockType：锁类型设置，支持6种常用锁
- * waitTime：等待锁的时间，超过该时长依然无法获取到锁则不会执行程序
- * leaseTime：加锁时长，超过该时长自动解锁，所以设置该值时一定要设置一个合理的值
- * @param ces
- * @param orderNo
- */
-@Lock(lockType=LockType.REENTRANT,waitTime=20,leaseTime=10)
-public void lock(String ces, @Key String orderNo) {
-	System.out.println("hello");
-}
+<dependency>
+     <groupId>org.august.spring.boot</groupId>
+     <artifactId>lock-spring-boot-starter</artifactId>
+     <version>1.0.0</version>
+</dependency>
 					</code></pre>
+				</div>
+				<div class="desc-content">
+					3. 在Spring Boot的项目配置文件application.yml中添加相应的配置，如：
+				</div>
+				<div>
+					<pre><code data-language="java">
+lock-config: 
+     pattern: single #redis模式配置，single：单机模式，cluster:集群模式，replicated:云托管模式,sentinel:哨兵模式，master_slave：主从模式
+     # 不同的redis模式对应不同的配置方式，single-server对应的就是单机模式，具体参数意义可参考redisson的配置参数说明
+     single-server: 
+         address: 127.0.0.1
+         port: 6379
+         password: 123456
+					</code></pre>
+				</div>
+				<div class="desc-content">
+					4. 在需要使用分布式锁的方法上面使用@Lock注解，锁的关键字使用@Key，如:
+				</div>
+				<div>
+					<pre><code data-language="java">
+@Lock
+ public void hello(String ces, @Key String orderNo) {
+ 	System.out.println("hello");
+ }
+					</code></pre>
+				</div>
+				<div class="desc-content">
+					注：如果需要配置不同类型的锁，可以直接变更@Lock的参数值即可，默认是可重入锁
+				</div>
+				<div>
+					<pre><code data-language="java">
+@Lock提供四个参数可以配置： lockType:锁类型 leaseTime:加锁时间 waitTime:最长等待时间 timeUnit:锁时长单位
+					</code></pre>
+				</div>
+				<div class="desc-content">
+					DEMO地址如下：<a href="https://gitee.com/tooleek/lock-spring-boot-starter-demo" target="_blank">https://gitee.com/tooleek/lock-spring-boot-starter-demo</a>
 				</div>
 			</div>
 		</div>
