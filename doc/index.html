@@ -3,8 +3,8 @@
 	<head>
 		<title>分布式锁[lock-spring-boot-starter]</title>
 		<meta charset="utf-8" />
-		<meta name="Keywords" content="分布式锁,java分布式锁,JAVA分布式锁,Java分布式锁,lock-spring-boot-starter,分布式,锁,开源,开源分布式锁,Java开源分布式锁" />
-		<meta name="Description" content="lock-spring-boot-starter是一个基于Spring Boot的starter机制编写的分布式锁工具。 与其他分布式锁不同的是,使用起来更方便快捷,只需要通过注解@Lock的方式即可实现对方法进行加锁。 " />
+		<meta name="keywords" content="分布式锁,java分布式锁,JAVA分布式锁,Java分布式锁,lock-spring-boot-starter,分布式,锁,开源,开源分布式锁,Java开源分布式锁" />
+		<meta name="description" content="lock-spring-boot-starter是一个基于Spring Boot的starter机制编写的分布式锁工具。 与其他分布式锁不同的是,使用起来更方便快捷,只需要通过注解@Lock的方式即可实现对方法进行加锁。 " />
 		<script type="text/javascript" src="js/jquery-3.4.0.min.js"></script>
 		<link rel="stylesheet" href="css/index.css" />
 		<link rel="stylesheet" href="css/kimbie-dark.css" />
@@ -33,7 +33,7 @@
 					一款基于Spring Boot , 用起来还挺顺手的分布式锁
 				</div>
 				<div class="btn-group">
-					<span class="btn-group-span" id="startUseBtn">开始使用</span>
+					<span class="btn-group-span" id="startUseBtn">快速入门</span>
 					<span class="btn-group-span" id="useDescBtn">使用说明</span>
 					<span class="btn-group-span" id="giteeBtn">码云</span>
 				</div>
@@ -47,14 +47,13 @@
 			<div class="main-content">
 				<div style="height: 50px;"></div>
 				<div class="title">
-					<span>开始使用</span>
+					<span>快速入门</span>
 				</div>
 				<div class="sub-title">
 					<span>介绍</span>
 				</div>
 				<div class="desc-content">
-					lock-spring-boot-starter是一个基于Spring Boot的starter机制编写的分布式锁工具。 
-					与其他分布式锁不同的是,使用起来更方便快捷,只需要通过注解@Lock的方式即可实现对方法进行加锁。 
+					lock-spring-boot-starter是一个基于Spring Boot的starter机制编写的分布式锁工具。 与其他分布式锁不同的是,使用起来更方便快捷,只需要通过注解@Lock的方式即可实现对方法进行加锁。
 				</div>
 				<div class="sub-title">
 					<span>锁类型支持</span>
@@ -68,7 +67,7 @@
 					<div>写锁</div>
 				</div>
 				<div class="sub-title">
-					<span>使用说明</span>
+					<span>入门示例</span>
 				</div>
 				<div class="desc-content">
 					1. 创建Spring Boot项目
@@ -79,7 +78,7 @@
 				<div>
 					<pre><code data-language="java">
 <dependency>
-     <groupId>org.august.spring.boot</groupId>
+     <groupId>io.gitee.tooleek</groupId>
      <artifactId>lock-spring-boot-starter</artifactId>
      <version>1.0.0</version>
 </dependency>
@@ -119,9 +118,93 @@ lock-config:
 					</code></pre>
 				</div>
 				<div class="desc-content">
-					DEMO地址如下：<a href="https://gitee.com/tooleek/lock-spring-boot-starter-demo" target="_blank">https://gitee.com/tooleek/lock-spring-boot-starter-demo</a>
+					DEMO地址如下：
+					<a href="https://gitee.com/tooleek/lock-spring-boot-starter-demo" target="_blank">https://gitee.com/tooleek/lock-spring-boot-starter-demo</a>
+				</div>
+				<a name="useDesc"></a>
+				<div class="title">
+					<span>使用说明</span>
+				</div>
+				<div class="sub-title">
+					<span>@Lock注解</span>
+				</div>
+				<div class="desc-content">
+					@Lock注解用于标识需要在某个方法上使用分布式锁,@Lock提供三个参数用于设置锁的相关参数,参数如下：
+				</div>
+				<div class="desc-content">
+					<div><b>lockType：</b>锁类型设置,支持6种常用锁,值类型为：LockType,可选值为：LockType.REENTRANT(可重入锁)、LockType.FAIR(公平锁)、LockType.MULTI(联锁)、LockType.RED(红锁)、LockType.READ(读锁)、LockType.WRITE(写锁)</div>
+					<div><b>waitTime：</b>等待锁的时间,超过该时长依然无法获取到锁则不会执行程序</div>
+					<div><b>leaseTime：</b>加锁时长,超过该时长自动解锁,所以设置该值时一定要设置一个合理的值</div>
+					<div><b>timeUnit：</b>锁时长单位,值类型为：TimeUnit,默认值为TimeUnit.SECONDS</div>
+				</div>
+				<div class="sub-title">
+					<span>@Key注解</span>
+				</div>
+				<div class="desc-content">
+					@Key注解用于标识加锁的参数,红锁和联锁支持使用多个@Key,@Key提供三种注解方式
+				</div>
+				<div class="desc-content">
+					<div><b>方法参数注解：</b>在方法的参数前面使用@Key标识用来作为加锁条件的参数</div>
+				</div>
+				<div>
+					<pre><code data-language="java">
+@Lock(lockType=LockType.REENTRANT,waitTime=20,leaseTime=10)
+public void lock(String ces, @Key String orderNo) {
+	System.out.println("hello");
+}
+					</code></pre>
+				</div>
+				<div class="desc-content">
+					<div><b>方法体注解：</b>在方法体上面使用@Key标识用来作为加锁条件的参数</div>
+				</div>
+				<div>
+					<pre><code data-language="java">
+@Lock(lockType=LockType.REENTRANT,waitTime=20,leaseTime=10)
+@Key({"DemoEntity.orderNo"})
+public void lock(DemoEntity entity) {
+	System.out.println("hello");
+}
+					</code></pre>
+				</div>
+				<div class="desc-content">
+					<div><b>参数类属性注解：</b>在方法的参数类属性上面使用@Key标识用来作为加锁条件的参数</div>
+				</div>
+				<div>
+					<pre><code data-language="java">
+@Setter
+@Getter
+public class PropertiesLockEntity {
+    @Key
+    private String id;
+    private Integer count;
+}
+
+@Lock(lockType=LockType.REENTRANT,waitTime=20,leaseTime=10)
+public void lock(PropertiesLockEntity demoEntity) {
+	System.out.println("hello");
+}
+					</code></pre>
+				</div>
+				<div class="desc-content">
+					<b>注：</b>如果在方法上使用了@Lock但并未进行指定Key那么会默认锁整个方法
+				</div>
+				<div class="sub-title">
+					<span>配置参数lock-config</span>
+				</div>
+				<div class="desc-content">
+					用于设置Redis相关的连接信息和配置
+				</div>
+				<div class="desc-content">
+					<div><b>pattern：</b>Redis模式配置,single：单机模式，cluster:集群模式，replicated:云托管模式,sentinel:哨兵模式，master_slave：主从模式</div>
+     				<div>不同的redis模式对应不同的配置方式，single-server对应的就是单机模式，具体参数意义可参考redisson的配置参数说明</div>
+     				<div><b>single-server：</b>单机模式参数配置</div>
+     				<div><b>cluster-server：</b>集群模式参数配置</div>
+     				<div><b>master-slave-server：</b>主从模式参数配置</div>
+     				<div><b>sentinel-server：</b>哨兵模式参数配置</div>
+     				<div><b>replicated-server：</b>云托管模式参数配置</div>
 				</div>
 			</div>
+
 		</div>
 		<script type="text/javascript" src="js/index.js"></script>
 	</body>

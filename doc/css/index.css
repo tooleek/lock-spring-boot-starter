@@ -54,7 +54,7 @@ pre {
 }
 .main-container{
 	/*height: 100vh;*/
-	margin-bottom: 80px;
+	margin-bottom: 50px;
 }
 .start-header{
 	height: 10vh;
@@ -89,6 +89,7 @@ pre {
 	background: #FFFFFF;
 	padding-left: 80px;
 	padding-right: 80px;
+	padding-bottom: 30px;
 	/*padding-top: 50px;*/
 }
 .desc-content{

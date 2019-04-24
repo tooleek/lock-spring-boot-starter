@@ -9,7 +9,7 @@
 2. 引入maven依赖
    ```  
     <dependency>
-        <groupId>org.august.spring.boot</groupId>
+        <groupId>io.gitee.tooleek</groupId>
         <artifactId>lock-spring-boot-starter</artifactId>
         <version>1.0.0</version>
     </dependency>

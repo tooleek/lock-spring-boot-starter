@@ -9,7 +9,7 @@ $("#startUseBtn").click(function(){
 });
 
 $("#useDescBtn").click(function(){
-	window.location.href="#startUse";
+	window.location.href="#useDesc";
 });
 
 
